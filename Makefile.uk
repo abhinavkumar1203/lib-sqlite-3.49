@@ -40,9 +40,9 @@ $(eval $(call addlib_s,libsqlite,$(CONFIG_LIBSQLITE)))
 ################################################################################
 # Sources
 ################################################################################
-LIBSQLITE_VERSION = 3400100
+LIBSQLITE_VERSION = 3500000
 LIBSQLITE_BASENAME = sqlite-amalgamation-$(LIBSQLITE_VERSION)
-LIBSQLITE_URL = https://www.sqlite.org/2022/$(LIBSQLITE_BASENAME).zip
+LIBSQLITE_URL = https://www.sqlite.org/2025/$(LIBSQLITE_BASENAME).zip
 LIBSQLITE_PATCHDIR = $(LIBSQLITE_BASE)/patches
 $(eval $(call fetch,libsqlite,$(LIBSQLITE_URL)))
 $(eval $(call patch,libsqlite,$(LIBSQLITE_PATCHDIR),$(LIBSQLITE_BASENAME)))
