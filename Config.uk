@@ -1,13 +1,11 @@
 menuconfig LIBSQLITE
-    bool "SQLite"
+    bool "libsqlite"
     default n
-    imply LIBUKMMAP
-    select LIBPOSIX_SYSINFO
-    depends on HAVE_LIBC
-    select LIBPTHREAD_EMBEDDED
+    help
+      Enable the SQLite library
 
 if LIBSQLITE
-config LIBSQLITE_MAIN_FUNCTION
-    bool "Provide main function"
-    default n
+config LIBSQLITE_ENABLE_SOMETHING
+    bool "Some internal sqlite config"
+    default y
 endif

@@ -30,7 +30,6 @@
 #  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 #  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #  POSSIBILITY OF SUCH DAMAGE.
-#
 
 ################################################################################
 # App registration
@@ -38,50 +37,60 @@
 $(eval $(call addlib_s,libsqlite,$(CONFIG_LIBSQLITE)))
 
 ################################################################################
-# Sources
+# Versioning and Paths
 ################################################################################
-LIBSQLITE_VERSION = 3400100
+LIBSQLITE_VERSION = 3450300
 LIBSQLITE_BASENAME = sqlite-amalgamation-$(LIBSQLITE_VERSION)
-LIBSQLITE_URL = https://www.sqlite.org/2022/$(LIBSQLITE_BASENAME).zip
-LIBSQLITE_PATCHDIR = $(LIBSQLITE_BASE)/patches
+LIBSQLITE_URL = https://www.sqlite.org/2024/$(LIBSQLITE_BASENAME).zip
+LIBSQLITE_PATCHDIR           = $(LIBSQLITE_BASE)/patches
+LIBSQLITE_SRC                = $(LIBSQLITE_ORIGIN)/$(LIBSQLITE_BASENAME)
+
 $(eval $(call fetch,libsqlite,$(LIBSQLITE_URL)))
 $(eval $(call patch,libsqlite,$(LIBSQLITE_PATCHDIR),$(LIBSQLITE_BASENAME)))
 
 ################################################################################
-# Helpers
+# Includes
 ################################################################################
-LIBSQLITE_SRC = $(LIBSQLITE_ORIGIN)/$(LIBSQLITE_BASENAME)
-
-################################################################################
-# Library includes
-################################################################################
-LIBSQLITE_CINCLUDES-y += -I$(LIBSQLITE_BASE)/include
-CINCLUDES-$(CONFIG_LIBSQLITE) += -I$(LIBSQLITE_SRC)
+CINCLUDES-$(CONFIG_LIBSQLITE)  += -I$(LIBSQLITE_SRC)
+CINCLUDES-$(CONFIG_LIBSQLITE)  += -I$(LIBSQLITE_BASE)/include
 CXXINCLUDES-$(CONFIG_LIBSQLITE) += -I$(LIBSQLITE_SRC)
 
 ################################################################################
-# Global flags
+# Flags
 ################################################################################
-LIBSQLITE_FLAGS = -D_HAVE_SQLITE_CONFIG_H -DSQLITE_OMIT_LOAD_EXTENSION
+LIBSQLITE_FLAGS = -D_HAVE_SQLITE_CONFIG_H \
+                  -DSQLITE_OMIT_LOAD_EXTENSION \
+                  -DSQLITE_OMIT_LOCALTIME \
+                  -DSQLITE_OS_UNIX=0 \
+                  -DSQLITE_OS_OTHER=1 \
+                  -DSQLITE_THREADSAFE=0
 
-# Suppress some warnings to make the build process look neater
-LIBSQLITE_SUPPRESS_FLAGS-y += -Wno-unused-parameter -Wno-unused-variable		\
--Wno-cast-function-type -Wno-char-subscripts
+LIBSQLITE_SUPPRESS_FLAGS-y += -Wno-unused-parameter \
+                              -Wno-unused-variable \
+                              -Wno-cast-function-type \
+                              -Wno-char-subscripts
 
-LIBSQLITE_SUPPRESS_FLAGS-$(call gcc_version_ge,7,0) +=-Wimplicit-fallthrough=0		\
+LIBSQLITE_SUPPRESS_FLAGS-$(call gcc_version_ge,7,0) += -Wimplicit-fallthrough=0
 
-LIBSQLITE_CFLAGS-y += $(LIBSQLITE_FLAGS)
-LIBSQLITE_CFLAGS-y += $(LIBSQLITE_SUPPRESS_FLAGS-y)
+CFLAGS-$(CONFIG_LIBSQLITE) += $(LIBSQLITE_FLAGS)
+CFLAGS-$(CONFIG_LIBSQLITE) += $(LIBSQLITE_SUPPRESS_FLAGS-y)
 
 ################################################################################
-# Glue code
+# Sources
 ################################################################################
-LIBSQLITE_SRCS-$(CONFIG_LIBSQLITE_MAIN_FUNCTION) += $(LIBSQLITE_BASE)/main.c|unikraft
-
-################################################################################
-# SQLite sources
-################################################################################
-LIBSQLITE_SHELL_FLAGS-y += -Dmain=sqlite_main -Dwmain=sqlite_main
-
-LIBSQLITE_SRCS-y += $(LIBSQLITE_SRC)/shell.c
 LIBSQLITE_SRCS-y += $(LIBSQLITE_SRC)/sqlite3.c
+
+# Optional: Shell support (CLI app interface, not needed for lib use)
+# Uncomment only if your app needs the shell interface (usually not)
+# LIBSQLITE_CFLAGS-y += -Dmain=sqlite_main -Dwmain=sqlite_main
+# LIBSQLITE_SRCS-y   += $(LIBSQLITE_SRC)/shell.c
+
+# Optional: Dummy main.c to satisfy Unikraft if needed
+# (Used only if library wants to override main())
+# LIBSQLITE_SRCS-$(CONFIG_LIBSQLITE_MAIN_FUNCTION) += $(LIBSQLITE_BASE)/main.c
+
+################################################################################
+# Object generation
+################################################################################
+LIBSQLITE_OBJS-y := $(LIBSQLITE_SRCS-y:.c=.o)
+$(eval $(call addlibobjs,libsqlite,$(LIBSQLITE_OBJS-y)))
