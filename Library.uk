@@ -1,9 +1,9 @@
 name        := "libsqlite"
-description := "A C-language library that implements a small, fast, self-contained SQL database engine."
+description := "A C-language library that implements a small, fast, self-contained SQL database engine"
 gitrepo     := "https://github.com/sqlite/sqlite.git"
 homepage    := "https://www.sqlite.org/"
 license     := "blessing"
-version     := 3450300
-hash        := sha256:49112cc7328392aa4e3e5dae0b2f6736d0153430143d21f69327...
+version     := 3500100
+hash        := sha256:41716b44ac8777188c4c3f1f370f01c9cb9e3b6428eb5c981d086c35de2d9d3f
 
 $(eval $(call addlib_s,libsqlite,$(CONFIG_LIBSQLITE)))
