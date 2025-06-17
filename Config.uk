@@ -4,8 +4,12 @@ menuconfig LIBSQLITE
     help
       Enable the SQLite library
 
+config LIBSQLITE_ENABLE_SHELL
+    bool "Enable SQLite shell (CLI) interface"
+    default n
+
 if LIBSQLITE
-config LIBSQLITE_ENABLE_SOMETHING
-    bool "Some internal sqlite config"
-    default y
+config LIBSQLITE_MAIN_FUNCTION
+    bool "Provide main function"
+    default n
 endif

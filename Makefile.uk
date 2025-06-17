@@ -37,11 +37,11 @@
 $(eval $(call addlib_s,libsqlite,$(CONFIG_LIBSQLITE)))
 
 ################################################################################
-# Versioning and Paths
+# Sources
 ################################################################################
-LIBSQLITE_VERSION = 3450300
+LIBSQLITE_VERSION = 3500100
 LIBSQLITE_BASENAME = sqlite-amalgamation-$(LIBSQLITE_VERSION)
-LIBSQLITE_URL = https://www.sqlite.org/2024/$(LIBSQLITE_BASENAME).zip
+LIBSQLITE_URL = https://www.sqlite.org/2025/$(LIBSQLITE_BASENAME).zip
 LIBSQLITE_PATCHDIR           = $(LIBSQLITE_BASE)/patches
 LIBSQLITE_SRC                = $(LIBSQLITE_ORIGIN)/$(LIBSQLITE_BASENAME)
 
@@ -49,10 +49,10 @@ $(eval $(call fetch,libsqlite,$(LIBSQLITE_URL)))
 $(eval $(call patch,libsqlite,$(LIBSQLITE_PATCHDIR),$(LIBSQLITE_BASENAME)))
 
 ################################################################################
-# Includes
+# Library includes
 ################################################################################
-CINCLUDES-$(CONFIG_LIBSQLITE)  += -I$(LIBSQLITE_SRC)
-CINCLUDES-$(CONFIG_LIBSQLITE)  += -I$(LIBSQLITE_BASE)/include
+LIBSQLITE_CINCLUDES-y += -I$(LIBSQLITE_BASE)/include
+CINCLUDES-$(CONFIG_LIBSQLITE) += -I$(LIBSQLITE_SRC)
 CXXINCLUDES-$(CONFIG_LIBSQLITE) += -I$(LIBSQLITE_SRC)
 
 ################################################################################
@@ -65,6 +65,7 @@ LIBSQLITE_FLAGS = -D_HAVE_SQLITE_CONFIG_H \
                   -DSQLITE_OS_OTHER=1 \
                   -DSQLITE_THREADSAFE=0
 
+# Suppress some warnings to make the build process look neater
 LIBSQLITE_SUPPRESS_FLAGS-y += -Wno-unused-parameter \
                               -Wno-unused-variable \
                               -Wno-cast-function-type \
@@ -72,25 +73,25 @@ LIBSQLITE_SUPPRESS_FLAGS-y += -Wno-unused-parameter \
 
 LIBSQLITE_SUPPRESS_FLAGS-$(call gcc_version_ge,7,0) += -Wimplicit-fallthrough=0
 
-CFLAGS-$(CONFIG_LIBSQLITE) += $(LIBSQLITE_FLAGS)
-CFLAGS-$(CONFIG_LIBSQLITE) += $(LIBSQLITE_SUPPRESS_FLAGS-y)
+LIBSQLITE_CFLAGS-y += $(LIBSQLITE_FLAGS)
+LIBSQLITE_CFLAGS-y += $(LIBSQLITE_SUPPRESS_FLAGS-y)
 
 ################################################################################
 # Sources
 ################################################################################
 LIBSQLITE_SRCS-y += $(LIBSQLITE_SRC)/sqlite3.c
+LIBSQLITE_SRCS-$(CONFIG_LIBSQLITE_ENABLE_SHELL) += $(LIBSQLITE_SRC)/shell.c
 
 # Optional: Shell support (CLI app interface, not needed for lib use)
-# Uncomment only if your app needs the shell interface (usually not)
-# LIBSQLITE_CFLAGS-y += -Dmain=sqlite_main -Dwmain=sqlite_main
-# LIBSQLITE_SRCS-y   += $(LIBSQLITE_SRC)/shell.c
+LIBSQLITE_CFLAGS-y += -Dmain=sqlite_main -Dwmain=sqlite_main
+LIBSQLITE_SRCS-y   += $(LIBSQLITE_SRC)/shell.c
 
 # Optional: Dummy main.c to satisfy Unikraft if needed
-# (Used only if library wants to override main())
-# LIBSQLITE_SRCS-$(CONFIG_LIBSQLITE_MAIN_FUNCTION) += $(LIBSQLITE_BASE)/main.c
+LIBSQLITE_SRCS-$(CONFIG_LIBSQLITE_MAIN_FUNCTION) += $(LIBSQLITE_BASE)/main.c
 
 ################################################################################
 # Object generation
 ################################################################################
 LIBSQLITE_OBJS-y := $(LIBSQLITE_SRCS-y:.c=.o)
 $(eval $(call addlibobjs,libsqlite,$(LIBSQLITE_OBJS-y)))
+$(eval $(call addlib_s,libsqlite,$(CONFIG_LIBSQLITE)))
